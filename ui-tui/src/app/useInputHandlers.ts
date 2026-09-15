@@ -185,16 +185,24 @@ export function shouldDetachEditedHistoryInput(historyIdx: null | number, histor
  * Alt (Option) + ↑/↓ — the prompt-to-prompt step: -1 previous, 1 next, 0 for
  * anything else.
  *
- * `key.meta` is plain Alt/Option on every platform (see lib/platform.ts); on
- * legacy macOS terminals it can also carry Cmd, which the emulator usually
- * swallows before the app sees it, so the reachable chord is Alt/Option+↑/↓ —
- * and the same reason macOS users should read Option+arrows in the docs.
+ * `key.meta` is plain Alt/Option on every platform (see lib/platform.ts). tmux
+ * can normalize the same chord to a double-Escape sequence, which Hermes Ink
+ * exposes as `key.option`; both representations must own the navigation action.
+ * On legacy macOS terminals `meta` can also carry Cmd, which the emulator
+ * usually swallows before the app sees it, so the reachable chord is
+ * Alt/Option+↑/↓ — and the same reason macOS users should read Option+arrows in
+ * the docs.
  * Nothing else claims Alt+arrows (plain arrows are completions/queue/history,
  * Shift+arrows scroll), but the chord is owned OUTRIGHT, so callers test it
  * BEFORE the bare-arrow handlers: without that order Alt+↑ reads as history up.
  */
-export const promptStepFor = (key: { downArrow?: boolean; meta?: boolean; upArrow?: boolean }): -1 | 0 | 1 => {
-  if (!key.meta || (!key.upArrow && !key.downArrow)) {
+export const promptStepFor = (key: {
+  downArrow?: boolean
+  meta?: boolean
+  option?: boolean
+  upArrow?: boolean
+}): -1 | 0 | 1 => {
+  if ((!key.meta && !key.option) || (!key.upArrow && !key.downArrow)) {
     return 0
   }
 

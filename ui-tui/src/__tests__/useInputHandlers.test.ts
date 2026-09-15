@@ -187,13 +187,18 @@ describe('dismissSensitivePrompt', () => {
 })
 
 describe('promptStepFor — Alt+↑/↓ owns the prompt-to-prompt step', () => {
-  it('maps Alt+↑/↓ to a step and leaves every bare arrow to the handlers below', () => {
+  it('maps Alt+↑/↓ to a step across direct and tmux-normalized key shapes', () => {
     expect(promptStepFor({ downArrow: false, meta: true, upArrow: true })).toBe(-1)
     expect(promptStepFor({ downArrow: true, meta: true, upArrow: false })).toBe(1)
+    // tmux can normalize Alt+Arrow to a double-Escape sequence. Hermes Ink
+    // exposes that legacy shape as option=true rather than meta=true.
+    expect(promptStepFor({ downArrow: false, meta: false, option: true, upArrow: true })).toBe(-1)
+    expect(promptStepFor({ downArrow: true, meta: false, option: true, upArrow: false })).toBe(1)
     // Without Alt the bare arrows stay with completions / queue edit / history.
-    expect(promptStepFor({ downArrow: false, meta: false, upArrow: true })).toBe(0)
-    expect(promptStepFor({ downArrow: true, meta: false, upArrow: false })).toBe(0)
+    expect(promptStepFor({ downArrow: false, meta: false, option: false, upArrow: true })).toBe(0)
+    expect(promptStepFor({ downArrow: true, meta: false, option: false, upArrow: false })).toBe(0)
     // Alt on its own is not a step.
     expect(promptStepFor({ meta: true })).toBe(0)
+    expect(promptStepFor({ option: true })).toBe(0)
   })
 })
